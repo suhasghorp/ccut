@@ -12,7 +12,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 # Add compile options (GCC/Clang only)
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_compile_options(
         -Wall
         -Wextra
@@ -26,6 +26,23 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         -Wduplicated-cond
         -Wlogical-op
         -Wuseless-cast
+        -Wzero-as-null-pointer-constant
+        -Wold-style-cast
+        -Wnon-virtual-dtor
+        -Woverloaded-virtual
+        -Wnull-dereference
+    )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Werror
+        -Wconversion
+        -Wsign-conversion
+        -Wshadow
+        -Wformat=2
+        -Wundef
         -Wzero-as-null-pointer-constant
         -Wold-style-cast
         -Wnon-virtual-dtor
