@@ -154,7 +154,7 @@ jobs:
     - name: Run tests (Debug)
       run: |
         cd build-debug
-        .\Debug\ccut_tests.exe
+        & ".\Debug\ccut_tests.exe"
         
     - name: Configure CMake (Release)
       run: |
@@ -170,19 +170,19 @@ jobs:
     - name: Run tests (Release)
       run: |
         cd build-release
-        .\Release\ccut_tests.exe
+        & ".\Release\ccut_tests.exe"
         
     - name: Test functionality (Debug)
       run: |
         cd build-debug
         echo "Testing Step 1: Basic field extraction"
-        .\Debug\ccut.exe -f2 ..\tests\sample.tsv
+        & ".\Debug\ccut.exe" -f2 ..\tests\sample.tsv
         echo ""
         echo "Testing Step 2: Custom delimiter"
-        .\Debug\ccut.exe -f1 -d, ..\tests\fourchords.csv | Select-Object -First 3
+        & ".\Debug\ccut.exe" -f1 -d, ..\tests\fourchords.csv | Select-Object -First 3
         echo ""
         echo "Testing Step 3: Multiple fields"
-        .\Debug\ccut.exe -f1,2 ..\tests\sample.tsv
+        & ".\Debug\ccut.exe" -f1,2 ..\tests\sample.tsv
         echo ""
         echo "Testing Step 4: Stdin support"
-        echo "a`tb`tc`nd`te`tf" | .\Debug\ccut.exe -f1,3
+        echo "a`tb`tc`nd`te`tf" | & ".\Debug\ccut.exe" -f1,3
