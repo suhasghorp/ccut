@@ -1,0 +1,188 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  ubuntu-gcc14:
+    name: Ubuntu GCC 14
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libgtest-dev
+        
+    - name: Configure CMake (Debug)
+      run: |
+        mkdir -p build-debug
+        cd build-debug
+        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=g++ ..
+        
+    - name: Build (Debug)
+      run: |
+        cd build-debug
+        make -j$(nproc)
+        
+    - name: Run tests (Debug)
+      run: |
+        cd build-debug
+        ./bin/ccut_tests
+        
+    - name: Configure CMake (Release)
+      run: |
+        mkdir -p build-release
+        cd build-release
+        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ ..
+        
+    - name: Build (Release)
+      run: |
+        cd build-release
+        make -j$(nproc)
+        
+    - name: Run tests (Release)
+      run: |
+        cd build-release
+        ./bin/ccut_tests
+        
+    - name: Test functionality (Debug)
+      run: |
+        cd build-debug
+        echo "Testing Step 1: Basic field extraction"
+        ./bin/ccut -f2 ../tests/sample.tsv
+        echo ""
+        echo "Testing Step 2: Custom delimiter"
+        ./bin/ccut -f1 -d, ../tests/fourchords.csv | head -n3
+        echo ""
+        echo "Testing Step 3: Multiple fields"
+        ./bin/ccut -f1,2 ../tests/sample.tsv
+        echo ""
+        echo "Testing Step 4: Stdin support"
+        echo -e "a\tb\tc\nd\te\tf" | ./bin/ccut -f1,3
+
+  ubuntu-clang19:
+    name: Ubuntu Clang 19
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libgtest-dev clang-19
+        
+    - name: Configure CMake (Debug)
+      run: |
+        mkdir -p build-debug
+        cd build-debug
+        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++-19 ..
+        
+    - name: Build (Debug)
+      run: |
+        cd build-debug
+        make -j$(nproc)
+        
+    - name: Run tests (Debug)
+      run: |
+        cd build-debug
+        ./bin/ccut_tests
+        
+    - name: Configure CMake (Release)
+      run: |
+        mkdir -p build-release
+        cd build-release
+        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-19 ..
+        
+    - name: Build (Release)
+      run: |
+        cd build-release
+        make -j$(nproc)
+        
+    - name: Run tests (Release)
+      run: |
+        cd build-release
+        ./bin/ccut_tests
+        
+    - name: Test functionality (Debug)
+      run: |
+        cd build-debug
+        echo "Testing Step 1: Basic field extraction"
+        ./bin/ccut -f2 ../tests/sample.tsv
+        echo ""
+        echo "Testing Step 2: Custom delimiter"
+        ./bin/ccut -f1 -d, ../tests/fourchords.csv | head -n3
+        echo ""
+        echo "Testing Step 3: Multiple fields"
+        ./bin/ccut -f1,2 ../tests/sample.tsv
+        echo ""
+        echo "Testing Step 4: Stdin support"
+        echo -e "a\tb\tc\nd\te\tf" | ./bin/ccut -f1,3
+
+  windows-msvc:
+    name: Windows MSVC
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        # Install vcpkg for GTest
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        .\vcpkg install gtest:x64-windows
+        
+    - name: Configure CMake (Debug)
+      run: |
+        mkdir build-debug
+        cd build-debug
+        cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
+        
+    - name: Build (Debug)
+      run: |
+        cd build-debug
+        cmake --build . --config Debug --parallel
+        
+    - name: Run tests (Debug)
+      run: |
+        cd build-debug
+        .\Debug\ccut_tests.exe
+        
+    - name: Configure CMake (Release)
+      run: |
+        mkdir build-release
+        cd build-release
+        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
+        
+    - name: Build (Release)
+      run: |
+        cd build-release
+        cmake --build . --config Release --parallel
+        
+    - name: Run tests (Release)
+      run: |
+        cd build-release
+        .\Release\ccut_tests.exe
+        
+    - name: Test functionality (Debug)
+      run: |
+        cd build-debug
+        echo "Testing Step 1: Basic field extraction"
+        .\Debug\ccut.exe -f2 ..\tests\sample.tsv
+        echo ""
+        echo "Testing Step 2: Custom delimiter"
+        .\Debug\ccut.exe -f1 -d, ..\tests\fourchords.csv | Select-Object -First 3
+        echo ""
+        echo "Testing Step 3: Multiple fields"
+        .\Debug\ccut.exe -f1,2 ..\tests\sample.tsv
+        echo ""
+        echo "Testing Step 4: Stdin support"
+        echo "a`tb`tc`nd`te`tf" | .\Debug\ccut.exe -f1,3
