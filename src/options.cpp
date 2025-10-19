@@ -70,8 +70,8 @@ std::expected<Options, std::string> parseArgs(int argc, char* argv[]) {
             }
             opts.delimiter = delimSpec[0];
         }
-        else if (!arg.starts_with("-")) {
-            // This is the filename
+        else if (!arg.starts_with("-") || arg == "-") {
+            // This is the filename (including "-" for stdin)
             opts.filename = arg;
         }
         else {
@@ -79,9 +79,13 @@ std::expected<Options, std::string> parseArgs(int argc, char* argv[]) {
         }
     }
     
-    if (opts.filename.empty()) {
-        return std::unexpected("No filename specified");
+    // Handle stdin case: if filename is "-", treat as stdin
+    if (opts.filename == "-") {
+        opts.filename = ""; // Empty filename indicates stdin
     }
+    
+    // Allow empty filename for stdin (when no filename provided)
+    // This will be handled in main.cpp
     
     if (opts.fields.empty()) {
         return std::unexpected("No fields specified");

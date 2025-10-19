@@ -97,8 +97,9 @@ TEST_F(OptionsTest, MissingFilename) {
     
     auto result = ccut::parseArgs(argc, const_cast<char**>(argv));
     
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), "No filename specified");
+    // Now this should succeed because empty filename means stdin
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->filename, ""); // Empty filename indicates stdin
 }
 
 TEST_F(OptionsTest, MissingFields) {
@@ -131,12 +132,28 @@ TEST_F(OptionsTest, InvalidDelimiter) {
     EXPECT_EQ(result.error(), "Delimiter must be exactly one character");
 }
 
-TEST_F(OptionsTest, UnknownOption) {
-    const char* argv[] = {"ccut", "-x", "test.tsv"};
+TEST_F(OptionsTest, ParseWithStdinDash) {
+    const char* argv[] = {"ccut", "-f1", "-"};
     int argc = 3;
     
     auto result = ccut::parseArgs(argc, const_cast<char**>(argv));
     
-    ASSERT_FALSE(result.has_value());
-    EXPECT_EQ(result.error(), "Unknown option: -x");
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->fields.size(), 1);
+    EXPECT_EQ(result->fields[0], 0); // Field 1 is 0-indexed as 0
+    EXPECT_EQ(result->delimiter, '\t');
+    EXPECT_EQ(result->filename, ""); // Empty filename indicates stdin
+}
+
+TEST_F(OptionsTest, ParseWithNoFilename) {
+    const char* argv[] = {"ccut", "-f1"};
+    int argc = 2;
+    
+    auto result = ccut::parseArgs(argc, const_cast<char**>(argv));
+    
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->fields.size(), 1);
+    EXPECT_EQ(result->fields[0], 0); // Field 1 is 0-indexed as 0
+    EXPECT_EQ(result->delimiter, '\t');
+    EXPECT_EQ(result->filename, ""); // Empty filename indicates stdin
 }

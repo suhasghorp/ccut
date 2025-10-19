@@ -11,14 +11,24 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    std::ifstream file(opts->filename);
-    if (!file.is_open()) {
-        std::cerr << "Error: Cannot open file '" << opts->filename << "'" << std::endl;
-        return 1;
+    std::ifstream file;
+    std::istream* input = nullptr;
+    
+    if (opts->filename.empty()) {
+        // Read from stdin
+        input = &std::cin;
+    } else {
+        // Read from file
+        file.open(opts->filename);
+        if (!file.is_open()) {
+            std::cerr << "Error: Cannot open file '" << opts->filename << "'" << std::endl;
+            return 1;
+        }
+        input = &file;
     }
     
     std::string line;
-    while (std::getline(file, line)) {
+    while (std::getline(*input, line)) {
         auto result = ccut::FieldExtractor::extractFields(line, opts->delimiter, opts->fields);
         if (!result.has_value()) {
             std::cerr << "Error: " << result.error() << std::endl;
